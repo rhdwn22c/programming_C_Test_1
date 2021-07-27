@@ -1,0 +1,68 @@
+int Menu()
+{
+	int Gamenumber;
+
+	
+	CursorView(0);
+
+	printf("┏ =======미 니 게 임=======┓\n");
+	printf("∥                         ∥\n");
+	printf("∥                         ∥\n");
+	printf("∥ 1 : 산술 게임           ∥\n");
+	printf("∥                         ∥\n");
+	printf("∥ 2 : 복권 게임           ∥\n");
+	printf("∥                         ∥\n");
+	printf("∥ 3 : 스피드 게임         ∥\n");
+	printf("∥                         ∥\n");
+	printf("∥ 4 : 야구 게임           ∥\n");
+	printf("∥                         ∥\n");
+	printf("∥ 5 : Up&Down 게임        ∥\n");
+	printf("∥                         ∥\n");
+	printf("∥ 6 : Snake 게임          ∥\n");
+	printf("∥                         ∥\n");
+	printf("∥ 7 : 종료                ∥\n");
+	printf("∥                         ∥\n");
+	printf("∥                         ∥\n");
+	printf("┖ =========================┚\n");
+
+	scanf_s("%d", &Gamenumber);
+
+	if (Gamenumber == 1)
+	{
+		numarithmetic();
+	}
+	else if (Gamenumber == 2)
+	{
+		Lottery();
+	}
+	else if (Gamenumber == 3)
+	{
+		Speedgame();
+	}
+	else if (Gamenumber == 4)
+	{
+		Baseball();
+	}
+	else if (Gamenumber == 5)
+	{
+		Updown();
+	}
+	else if (Gamenumber == 6)
+	{
+		Snakegame();
+	}
+	else if (Gamenumber == 7)
+	{
+		system("cls");
+		printf("게임을 종료합니다.");
+		return 0;
+	}
+	else
+	{
+		printf("잘못된 값을 입력받았습니다.");
+		Sleep(1000);
+		system("cls");
+		Menu();
+	}
+
+}
