@@ -1,0 +1,14 @@
+void status() { //각종 스텟을 볼수 있는 함수 
+	gotoxy(MAP_X + MAP_WIDTH + 1, MAP_Y, "head= ");
+	printf("%2d,%2d", x[0], y[0]);
+	gotoxy(MAP_X + MAP_WIDTH + 1, MAP_Y + 1, "food= ");
+	printf("%2d,%2d", food_x, food_y);
+	gotoxy(MAP_X + MAP_WIDTH + 1, MAP_Y + 2, "leng= ");
+	printf("%2d", length);
+	gotoxy(MAP_X + MAP_WIDTH + 1, MAP_Y + 3, "key= ");
+	printf("%3d", key);
+	gotoxy(MAP_X + MAP_WIDTH + 1, MAP_Y + 4, "spd= ");
+	printf("%3d", speed);
+	gotoxy(MAP_X + MAP_WIDTH + 1, MAP_Y + 6, "score= ");
+	printf("%3d", score);
+}
