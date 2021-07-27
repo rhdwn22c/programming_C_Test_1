@@ -1,0 +1,115 @@
+void Speedgame()
+{
+	loading();
+	system("cls");
+	int pass = 0, fail = 0; //성공과 실패수 적립
+	int Randomspeednum; //랜덤으로 나오는 수 
+	int x, y; //gotoxy
+	int num; //내가 정답으로 입력하는 수
+	int stage; //스테이지 난이도
+	int max; //최대로 나올 수 있는 숫자
+
+	srand((unsigned)time(NULL));
+	printf("최대로 나올 수 있는 숫자를 설정 해 주세요.");
+	scanf_s("%d", &max);
+
+	system("cls");
+
+	printf("난이도를 선택하세요. \n");
+	printf("Sooooooo easy : 1 / easy : 2 / Normal : 3 / hard : 4 / Sooooooo hard : 5 / Never touch it!!!! : 6 \n");
+	printf("숫자를 적어주세요 : ");
+	scanf_s("%d", &stage);
+	
+
+	while (1)
+	{
+		Randomspeednum = rand() % max + 1;
+		x = rand() % 36; //x의 위치
+		y = rand() % 10; //y의 위치
+
+		system("cls");
+		printf("시작하겠습니다.");
+		Sleep(1500);
+		system("cls");
+		gotoxy_speed(x, y);
+		printf("%d", Randomspeednum);
+
+		if (stage == 1) //stage 숫자가 클수록 더 빠르게 숫자가 나옴
+		{
+			Sleep(300);
+		}
+		else if (stage == 2)
+		{
+			Sleep(200);
+		}
+		else if (stage == 3)
+		{
+			Sleep(100);
+		}
+		else if (stage == 4)
+		{
+			Sleep(40);
+		}
+		else if (stage == 5)
+		{
+			Sleep(20);
+		}
+		else if (stage == 6)
+		{
+			Sleep(1);
+		}
+		else
+		{
+			system("cls");
+			printf("어? 잘못된 값을 입력하셨었네요. 다시 입력해주세요.\n");
+			Sleep(1000);
+			Speedgame();
+		}
+		
+		
+		system("cls");
+		printf("%d를 입력하면 종료됩니다. 숫자를 입력해 주세요 :", max * 10 - 1);
+		scanf_s("%d", &num);
+		if (num == Randomspeednum)
+		{
+			printf("정답입니다.\n");
+			pass++; //성공하면 pass++
+			printf("성공 : %d\n", pass);
+			printf("실패 : %d\n", fail);
+			Sleep(1500);
+			system("cls");
+
+		}
+		else if (num == max * 10 - 1) {
+			Sleep(1000);
+			system("cls");
+			printf("진짜로? (yes : 1 / no : 2)");
+			printf("입력해 주세요.");
+			scanf_s("%d", &onemoretime);
+
+			if (onemoretime == 2)
+			{
+				Speedgame();
+
+			}
+			else if (onemoretime == 1)
+			{
+				Sleep(1500);
+				system("cls");
+				Menu();
+			}
+		}
+
+		else {
+			printf("오답입니다.\n");
+			fail++; //틀리면 fail++
+			printf("정답은 %d입니다. \n", Randomspeednum);
+			printf("성공 : %d\n", pass);
+			printf("실패 : %d\n", fail);
+			Sleep(1500);
+
+			system("cls");
+		}
+	}
+
+}
