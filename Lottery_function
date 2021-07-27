@@ -1,0 +1,76 @@
+void Lottery()
+{
+	loading();
+
+	system("cls");
+
+	int i;
+	int Mynum[6]; //내 넘버
+	int RandNum[7]; //랜덤 넘버
+
+	srand((unsigned)time(NULL));
+	printf("1 ~ 45까지 있는 복권입니다. 뽑아보세요.\n");
+
+	for (i = 0; i <= 5;i++)
+	{
+		printf("입력하세요 : ");
+		scanf_s("%d", &Mynum[i]);
+
+		if (Mynum[i] > 45 || Mynum[i] < 1) //복권 숫자를 입력할 때 1보다 작거나 45보다 크면 안되기 때문에 if문을 사용하여 
+		{
+			printf("1 ~ 45만 입력해야합니다. 다시 입력해주세요.\n");
+			--i; //i의 값을 하나 빼주면 6번 모두 반복할 수 있다.
+		}
+		
+		for (int j = 0; j < i; j++) {
+			if (Mynum[i] == Mynum[j])
+			{
+				printf("중복 된 숫자는 사용 할 수 없습니다. 다시 입력해주세요.\n");
+				--i;
+			}
+		}
+	}
+
+	for (int i = 0; i < 7;i++) {
+		RandNum[i] = rand() % 45 + 1;
+		for (int j = 0; j < i;j++) {
+			if (RandNum[i] == RandNum[j]) { //RandNum이 중복되면 안되기때문에 
+				i--; //i의 값을 빼주어 중복되는 숫자가 나오지않게 해준다.
+				break;
+			}
+		}
+	}
+
+	printf("로또 번호 입니다. 맞춰보세요.\n ");
+	for (i = 0; i < 6;i++)
+	{
+		printf("%d ", RandNum[i]);
+		Sleep(1500);
+
+	}
+	Sleep(1500);
+	printf("보너스 번호입니다 : %d", RandNum[6]);
+	Sleep(1500);
+	printf("\n입력번호 : ");
+
+	for (i = 0; i < 6;i++)
+	{
+		printf("%d ", Mynum[i]);
+		Sleep(1500);
+	}
+
+	printf("한번 더 하시겠습니까? (yes : 1 / no : 2)\n");
+	printf("입력해 주세요.");
+	scanf_s("%d", &onemoretime);
+	if (onemoretime == 1)
+	{
+		Lottery();
+
+	}
+	else if (onemoretime == 2)
+	{
+		Sleep(1500);
+		system("cls");
+		Menu();
+	}
+}
