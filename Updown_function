@@ -1,0 +1,154 @@
+void Updown()
+{
+	loading();
+
+	int com, user;
+	int cnt = 0;
+	int onemoretime;
+	int level;
+	int random = 0;
+
+	system("cls");
+
+	printf("난이도를 선택해 주세요.(Easy : 1 / Normal : 2 / Hard : 3)");
+	scanf_s("%d", &level);
+
+	if (level == 1) {
+		random = 100;
+	}
+	else if (level == 2) {
+		random = 1000;
+	}
+	else if (level == 3) {
+		random = 10000;
+	}
+	else
+	{
+		printf("난이도를 잘못 입력했습니다.");
+		Updown();
+	}
+
+	srand((unsigned)time(NULL));
+	com = rand() % random + 1; //1에서 random사이의 난수 생성 
+
+	system("cls");
+
+	while (1)
+	{
+		printf("1 ~ %d사이의 수를 입력해 주세요\n", random);
+		scanf_s("%d", &user);
+
+
+		while (user > random || user < 1)
+		{
+			printf("\n잘못된 입력입니다.\n다시 입력 해주세요\n");
+			scanf_s("%d", &user);
+		} //조건에 맞지않는 입력일 경우 다시 입력하게 함 
+		if (user < random && user > 1)
+		{
+			if (user > com)
+			{
+				printf("down!!\n\n");
+				cnt++; //시도 횟수 카운트
+				if (cnt == 15)
+				{
+					printf("시도 횟수를 초과하셨습니다. 실패입니다. ");
+					Sleep(1000);
+					system("cls");
+					printf("한 번 더 하시겠습니까? (yes : 1 / no : 2)\n");
+					printf("입력해 주세요.");
+					scanf_s("%d", &onemoretime);
+
+					if (onemoretime == 1)
+					{
+						Updown();
+
+					}
+					else if (onemoretime == 2)
+					{
+						Sleep(1500);
+						system("cls");
+						Menu();
+					}
+				
+				}
+			}
+			else if (user < com)
+			{
+				printf("up!!\n\n");
+				cnt++; //시도 횟수 카운트
+				if (cnt == 15)
+				{
+					printf("시도 횟수를 초과하셨습니다. 실패입니다. ");
+					Sleep(1000);
+					system("cls");
+					printf("한 번 더 하시겠습니까? (yes : 1 / no : 2)\n");
+					printf("입력해 주세요.");
+					scanf_s("%d", &onemoretime);
+
+					if (onemoretime == 1)
+					{
+						Updown();
+
+					}
+					else if (onemoretime == 2)
+					{
+						Sleep(1500);
+						system("cls");
+						Menu();
+					}
+				}
+				
+				
+
+			}
+			else if (com == user)
+			{
+				cnt++; //시도 횟수 카운트
+				if (cnt == 15)
+				{
+					printf("시도 횟수를 초과하셨습니다. 실패입니다. ");
+					Sleep(1000);
+					system("cls");
+					printf("한 번 더 하시겠습니까? (yes : 1 / no : 2)\n");
+					printf("입력해 주세요.");
+					scanf_s("%d", &onemoretime);
+
+					if (onemoretime == 1)
+					{
+						Updown();
+
+					}
+					else if (onemoretime == 2)
+					{
+						Sleep(1500);
+						system("cls");
+						Menu();
+					}
+				}
+				else if (cnt < 15)
+				{
+					printf("%정답입니다!!\n%d번째에 맞추셨습니다.", cnt);
+					Sleep(1000);
+					system("cls");
+					printf("종료하시겠습니까? (yes : 1 / no : 2)\n");
+					printf("입력해 주세요.");
+					scanf_s("%d", &onemoretime);
+
+					if (onemoretime == 1)
+					{
+						Updown();
+
+					}
+					else if (onemoretime == 2)
+					{
+						Sleep(1500);
+						system("cls");
+						Menu();
+					}
+				}
+			}
+		}
+
+	}
+}
