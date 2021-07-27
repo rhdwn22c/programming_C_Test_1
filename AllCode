@@ -1,0 +1,1018 @@
+#include <stdio.h>
+#include <windows.h>
+#include <stdlib.h>
+#include <time.h>
+#include <conio.h>
+#pragma warning(disable : 4996)
+
+//키보드 아스키코드
+#define LEFT 75
+#define RIGHT 77
+#define UP 72
+#define DOWN 80
+#define PAUSE 112
+#define ESC 27
+
+#define MAP_X 3 //맵 시작 x좌표
+#define MAP_Y 2 //맵 시작 y좌표
+#define MAP_WIDTH 30 //맵 가로
+#define MAP_HEIGHT 20 //맵 세로
+
+int pass = 0, fail = 0;
+int onemoretime;
+int x[100], y[100]; //x,y 좌표값을 저장 총 100개 
+int food_x, food_y; //food의 좌표값을 저장 
+int length; //몸길이를 기억 
+int speed; //게임 속도 
+int score; //점수 저장  --reset함수에 의해 초기화됨
+int best_score = 0; //최고 점수 저장 --reset함수에 의해 초기화 되지 않음 
+int last_score = 0; //마지막 점수 저장  --reset함수에 의해 초기화 되지 않음
+int dir; //이동방향 저장 
+int key; //입력받은 키 저장 
+int status_on = 0; // 개발자용 status 표시활성화 변수.. 게임중에 S키를 누르면 활성 
+
+//_khbit()은 키보드가 입력중인지 조사
+//_getch()는 사용자에게 키보드로 하나의 키를 입력 받는 함수
+
+
+void gotoxy_speed(int x, int y)
+{
+	COORD pos = { x,y };
+	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
+}
+void gotoxy(int x, int y, char* s) { //x값을 2x로 변경, 좌표값에 바로 문자열을 입력할 수 있도록 printf함수 삽입  
+	COORD pos = { 2 * x,y };
+	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
+	printf("%s", s);
+}
+void CursorView(char show) {
+    HANDLE hConsole;
+    CONSOLE_CURSOR_INFO ConsoleCursor;
+
+    hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    ConsoleCursor.bVisible = show;
+    ConsoleCursor.dwSize = 1;
+
+    SetConsoleCursorInfo(hConsole, &ConsoleCursor);
+}
+
+
+void loading();
+void start(); //게임 시작화면 
+void reset(); //게임을 초기화 
+void map(); // 게임판 테두리를 그림 
+void move(int dir); //뱀머리를 이동 
+void pause(); //일시정지 
+void game_over(); //게임 오버를 확인 
+void apple(); // 음식 생성 
+void status(); // 개발자용 status표시  
+void numarithmetic();
+void Lottery();
+void Speedgame();
+void Baseball();
+void Updown();
+void Snakegame();
+int Menu();
+
+
+int main()
+{
+	Menu();
+
+}
+
+void loading()
+{
+	CursorView(0);
+	
+	system("cls");
+	for (int i = 0;i < 5;i++)
+	{
+		printf("로딩중...\n");
+		for (int j = 0;j < i;j++) {
+			printf("□");
+		}
+		printf("■");
+		for (int j = 0;j < 4 - i;j++) {
+			printf("□");
+		}
+		if (i != 4) {
+		Sleep(500);
+		system("cls");
+		}
+	}
+
+}
+
+void start() { //게임 시작 화면
+	int i, j;
+
+	while (_kbhit()) 
+	{
+		_getch();
+	}//버퍼에 있는 키값을 버림 
+
+	map();    //맵 테두리를 그림 
+	for (i = MAP_Y + 1;i < MAP_Y + MAP_HEIGHT - 1;i++) 
+	{ // 맵 테두리 안쪽을 빈칸으로 채움 
+		for (j = MAP_X + 1;j < MAP_X + MAP_WIDTH - 1;j++) gotoxy(j, i, "  ");
+	}
+
+	gotoxy(MAP_X + (MAP_WIDTH / 2) - 7, MAP_Y + 5, "┏ ========================┓");
+	gotoxy(MAP_X + (MAP_WIDTH / 2) - 7, MAP_Y + 6, "∥   S N A K E  G A M E   ∥");
+	gotoxy(MAP_X + (MAP_WIDTH / 2) - 7, MAP_Y + 7, "┖ ========================┚");
+
+	gotoxy(MAP_X + (MAP_WIDTH / 2) - 7, MAP_Y + 9, " < 아무 키나 누르면 시작 > ");
+
+	gotoxy(MAP_X + (MAP_WIDTH / 2) - 7, MAP_Y + 11, " ◇ ←,→,↑,↓ : 움직이기    ");
+	gotoxy(MAP_X + (MAP_WIDTH / 2) - 7, MAP_Y + 12, " ◇ P : 정지             ");
+	gotoxy(MAP_X + (MAP_WIDTH / 2) - 7, MAP_Y + 13, " ◇ ESC : 나가기              ");
+
+	while (1) {
+		if (_kbhit()) { //키입력받음 
+			key = _getch();
+			if (key == ESC)
+			{
+				exit(0);
+			}// ESC키면 종료 
+			else
+			{
+				break;
+			}//아니면 그냥 계속 진행 
+		}
+		gotoxy(MAP_X + (MAP_WIDTH / 2) - 7, MAP_Y + 9, " < 아무 키나 누르면 시작 > ");
+		Sleep(400);
+		gotoxy(MAP_X + (MAP_WIDTH / 2) - 7, MAP_Y + 9, "                            ");
+		Sleep(400);
+
+	}
+	reset(); // 게임을 초기화  
+}
+
+void reset() { //게임 초기화
+	int i;
+	system("cls"); //화면을 지움 
+	map(); //맵 테두리를 그림 
+	while (_kbhit())
+	{
+		_getch();
+	}//버퍼에 있는 키값을 버림 
+
+	dir = LEFT; // 방향 초기화  
+	speed = 100; // 속도 초기화 
+	length = 5; //뱀 길이 초기화 
+	score = 0; //점수 초기화 
+	for (i = 0;i < length;i++) 
+	{ //뱀 몸통값 입력 
+		x[i] = MAP_WIDTH / 2 + i;
+		y[i] = MAP_HEIGHT / 2;
+		gotoxy(MAP_X + x[i], MAP_Y + y[i], "■");
+	}
+	gotoxy(MAP_X + x[0], MAP_Y + y[0], "□"); //뱀 머리 그림 
+	apple(); // food 생성  
+}
+
+void map() { //맵 테두리 그리는 함수 
+	int i;
+	for (i = 0;i < MAP_WIDTH;i++) 
+	{
+		gotoxy(MAP_X + i, MAP_Y, "▣");
+	}
+	for (i = MAP_Y + 1;i < MAP_Y + MAP_HEIGHT - 1;i++) 
+	{
+		gotoxy(MAP_X, i, "▣");
+		gotoxy(MAP_X + MAP_WIDTH - 1, i, "▣");
+	}
+	for (i = 0;i < MAP_WIDTH;i++) 
+	{
+		gotoxy(MAP_X + i, MAP_Y + MAP_HEIGHT - 1, "▣");
+	}
+}
+
+void move(int dir) { //뱀 머리 이동
+	int i;
+
+	if (x[0] == food_x && y[0] == food_y) 
+	{ //food와 충돌했을 경우 
+		score += 10; //점수 증가 
+		apple(); //새로운 food 추가 
+		length++; //길이증가 
+		x[length - 1] = x[length - 2]; //새로만든 몸통에 값 입력 
+		y[length - 1] = y[length - 2];
+	}
+	if (x[0] == 0 || x[0] == MAP_WIDTH - 1 || y[0] == 0 || y[0] == MAP_HEIGHT - 1) 
+	{ //벽과 충돌했을 경우 
+		game_over();
+		return; //game_over에서 게임을 다시 시작하게 되면 여기서부터 반복되므로 
+				//return을 사용하여 move의 나머지 부분이 실행되지 않도록 합니다. 
+	}
+	for (i = 1;i < length;i++) 
+	{ //자기몸과 충돌했는지 검사 
+		if (x[0] == x[i] && y[0] == y[i]) 
+		{
+			game_over();
+			return;
+		}
+	}
+
+	gotoxy(MAP_X + x[length - 1], MAP_Y + y[length - 1], "  "); //몸통 마지막을 지움 
+	for (i = length - 1;i > 0;i--) 
+	{ //몸통좌표를 한칸씩 옮김 
+		x[i] = x[i - 1];
+		y[i] = y[i - 1];
+	}
+	gotoxy(MAP_X + x[0], MAP_Y + y[0], "□"); //머리가 있던곳을 몸통으로 고침 
+	if (dir == LEFT)
+	{
+		--x[0];
+	}//방향에 따라 새로운 머리좌표(x[0],y[0])값을 변경 
+	if (dir == RIGHT)
+	{
+		++x[0];
+	}
+	if (dir == UP)
+	{
+		--y[0];
+	}
+	if (dir == DOWN)
+	{
+		++y[0];
+	}
+	gotoxy(MAP_X + x[i], MAP_Y + y[i], "■"); //새로운 머리좌표값에 머리를 그림 
+}
+
+void pause() { // p키를 눌렀을 경우 게임을 일시 정지 
+	while (1) 
+	{
+		if (key == PAUSE) 
+		{
+			gotoxy(MAP_X + (MAP_WIDTH / 2) - 9, MAP_Y, "< 정지 : 아무 키나 누르면 시작합니다 > ");
+			Sleep(400);
+			gotoxy(MAP_X + (MAP_WIDTH / 2) - 9, MAP_Y, "                                    ");
+			Sleep(400);
+		}
+		else 
+		{
+			map();
+			return;
+		}
+		if (_kbhit()) 
+		{
+
+			do 
+			{
+				key = _getch();
+			} while (key == 224);
+		}
+
+	}
+}
+
+void game_over() { //게임종료 함수 
+	gotoxy(MAP_X + (MAP_WIDTH / 2) - 6, MAP_Y + 5, "┏ ====================┓");
+	gotoxy(MAP_X + (MAP_WIDTH / 2) - 6, MAP_Y + 6, "∥     !GAME OVER!    ∥");
+	gotoxy(MAP_X + (MAP_WIDTH / 2) - 6, MAP_Y + 7, "┖ ====================┚");
+	gotoxy(MAP_X + (MAP_WIDTH / 2) - 6, MAP_Y + 8, "    당신의 점수 : ");
+	printf("%d", last_score = score);
+
+	gotoxy(MAP_X + (MAP_WIDTH / 2) - 7, MAP_Y + 12, " 아무 키나 누르면 재시작 합니다. ");
+
+	if (score > best_score) 
+	{
+		best_score = score;
+		gotoxy(MAP_X + (MAP_WIDTH / 2) - 4, MAP_Y + 10, "☆ BEST SCORE ☆");
+	}
+	Sleep(500);
+	while (_kbhit())
+	{
+		_getch();
+	}
+	key = _getch();
+	start();
+}
+
+void apple() { //음식
+	int i;
+
+	int eatapple = 0;//사과가 뱀 몸통좌표에 생길 경우 on 
+	int r = 0; //난수 생성에 사동되는 변수 
+	gotoxy(MAP_X, MAP_Y + MAP_HEIGHT, " 당신의 점수: "); //점수표시 
+	printf("%3d, 마지막 점수: %3d, 최고 점수: %3d", score, last_score, best_score);
+
+	while (1) 
+	{
+		eatapple = 0;
+		srand((unsigned)time(NULL) + r); //난수표생성 
+		food_x = (rand() % (MAP_WIDTH - 2)) + 1;    //난수를 좌표값에 넣음 
+		food_y = (rand() % (MAP_HEIGHT - 2)) + 1;
+
+		for (i = 0;i < length;i++) 
+		{ //사과가 뱀 몸통과 겹치는지 확인  
+			if (food_x == x[i] && food_y == y[i]) 
+			{
+				eatapple = 1; //겹치면 eatapple 를 on 
+				r++;
+				break;
+			}
+		}
+
+		if (eatapple == 1)
+		{
+			continue;
+		}//겹쳤을 경우 while문을 다시 시작 
+
+		gotoxy(MAP_X + food_x, MAP_Y + food_y, "♣"); //안겹쳤을 경우 좌표값에 apple를 찍고 
+		speed -= 2; //속도 증가 
+		break;
+
+	}
+}
+
+void status() { //각종 스텟을 볼수 있는 함수 
+	gotoxy(MAP_X + MAP_WIDTH + 1, MAP_Y, "head= ");
+	printf("%2d,%2d", x[0], y[0]);
+	gotoxy(MAP_X + MAP_WIDTH + 1, MAP_Y + 1, "food= ");
+	printf("%2d,%2d", food_x, food_y);
+	gotoxy(MAP_X + MAP_WIDTH + 1, MAP_Y + 2, "leng= ");
+	printf("%2d", length);
+	gotoxy(MAP_X + MAP_WIDTH + 1, MAP_Y + 3, "key= ");
+	printf("%3d", key);
+	gotoxy(MAP_X + MAP_WIDTH + 1, MAP_Y + 4, "spd= ");
+	printf("%3d", speed);
+	gotoxy(MAP_X + MAP_WIDTH + 1, MAP_Y + 6, "score= ");
+	printf("%3d", score);
+}
+
+void numarithmetic()
+{
+	loading();
+
+	system("cls");
+
+	int i; //랜덤 변수 지정
+	int j; //랜덤 변수 지정
+	int plus; //산술의 정답
+	int answer; //나의 답변
+	int stage;
+	int level = 0;
+
+	printf("난이도를 설정해주세요. (1 : easy / 2 : normal / 3 : hard)\n");
+	scanf_s("%d", &stage);
+	if (stage == 3) 
+	{
+		level = 1500;
+	}
+	else if (stage == 2)
+	{
+		level = 3000;
+	}
+	else if (stage == 1)
+	{
+		level = 4500;
+	}
+	else
+	{
+		printf("난이도를 잘못 설정하셨습니다. 다시 입력 해 주세요.");
+		numarithmetic();
+	}
+
+	system("cls");
+
+	srand((unsigned)time(NULL)); //time.h & stdlib.h 랜덤 변수
+
+	i = rand() % 500 + 1;
+	j = rand() % 500 + 1;
+
+	printf("%d + %d = ?", i, j);
+	plus = i + j;
+
+	Sleep(level); //time.h 딜레이 줌
+
+	system("cls"); //전에 있던 화면을 지워줌
+	for (;;) //무한반복
+	{
+
+		printf("입력해 주세요 : ");
+		scanf_s("%d", &answer);
+
+		if (answer == plus)
+		{
+			printf("정답입니다.\n");
+			pass++;
+			printf("승 : %d\n", pass);
+			printf("패 : %d\n", fail);
+			Sleep(1000);
+			break;
+
+		}
+		else
+		{
+			printf("틀렸습니다.\n");
+			fail++;
+			printf("승 : %d\n", pass);
+			printf("패 : %d\n", fail);
+			Sleep(1000);
+			break;
+		}
+	}
+
+
+	printf("한번 더 하시겠습니까? (yes : 1 / no : 2)\n");
+	printf("입력해 주세요 : ");
+	scanf_s("%d", &onemoretime);
+
+	if (onemoretime == 1)
+	{
+		numarithmetic(); //onemoretime이 1일때 numarithmetic함수로 다시 돌아감
+	}
+	else if (onemoretime == 2)
+	{
+		Sleep(1000);
+		system("cls");
+		Menu(); //onemoretime이 0일때 Menu함수로 다시 돌아감
+	}
+}
+
+void Lottery()
+{
+	loading();
+
+	system("cls");
+
+	int i;
+	int Mynum[6]; //내 넘버
+	int RandNum[7]; //랜덤 넘버
+
+	srand((unsigned)time(NULL));
+	printf("1 ~ 45까지 있는 복권입니다. 뽑아보세요.\n");
+
+	for (i = 0; i <= 5;i++)
+	{
+		printf("입력하세요 : ");
+		scanf_s("%d", &Mynum[i]);
+
+		if (Mynum[i] > 45 || Mynum[i] < 1) //복권 숫자를 입력할 때 1보다 작거나 45보다 크면 안되기 때문에 if문을 사용하여 
+		{
+			printf("1 ~ 45만 입력해야합니다. 다시 입력해주세요.\n");
+			--i; //i의 값을 하나 빼주면 6번 모두 반복할 수 있다.
+		}
+		
+		for (int j = 0; j < i; j++) {
+			if (Mynum[i] == Mynum[j])
+			{
+				printf("중복 된 숫자는 사용 할 수 없습니다. 다시 입력해주세요.\n");
+				--i;
+			}
+		}
+	}
+
+	for (int i = 0; i < 7;i++) {
+		RandNum[i] = rand() % 45 + 1;
+		for (int j = 0; j < i;j++) {
+			if (RandNum[i] == RandNum[j]) { //RandNum이 중복되면 안되기때문에 
+				i--; //i의 값을 빼주어 중복되는 숫자가 나오지않게 해준다.
+				break;
+			}
+		}
+	}
+
+	printf("로또 번호 입니다. 맞춰보세요.\n ");
+	for (i = 0; i < 6;i++)
+	{
+		printf("%d ", RandNum[i]);
+		Sleep(1500);
+
+	}
+	Sleep(1500);
+	printf("보너스 번호입니다 : %d", RandNum[6]);
+	Sleep(1500);
+	printf("\n입력번호 : ");
+
+	for (i = 0; i < 6;i++)
+	{
+		printf("%d ", Mynum[i]);
+		Sleep(1500);
+	}
+
+	printf("한번 더 하시겠습니까? (yes : 1 / no : 2)\n");
+	printf("입력해 주세요.");
+	scanf_s("%d", &onemoretime);
+	if (onemoretime == 1)
+	{
+		Lottery();
+
+	}
+	else if (onemoretime == 2)
+	{
+		Sleep(1500);
+		system("cls");
+		Menu();
+	}
+}
+
+void Speedgame()
+{
+	loading();
+	system("cls");
+	int pass = 0, fail = 0; //성공과 실패수 적립
+	int Randomspeednum; //랜덤으로 나오는 수 
+	int x, y; //gotoxy
+	int num; //내가 정답으로 입력하는 수
+	int stage; //스테이지 난이도
+	int max; //최대로 나올 수 있는 숫자
+
+	srand((unsigned)time(NULL));
+	printf("최대로 나올 수 있는 숫자를 설정 해 주세요.");
+	scanf_s("%d", &max);
+
+	system("cls");
+
+	printf("난이도를 선택하세요. \n");
+	printf("Sooooooo easy : 1 / easy : 2 / Normal : 3 / hard : 4 / Sooooooo hard : 5 / Never touch it!!!! : 6 \n");
+	printf("숫자를 적어주세요 : ");
+	scanf_s("%d", &stage);
+	
+
+	while (1)
+	{
+		Randomspeednum = rand() % max + 1;
+		x = rand() % 36; //x의 위치
+		y = rand() % 10; //y의 위치
+
+		system("cls");
+		printf("시작하겠습니다.");
+		Sleep(1500);
+		system("cls");
+		gotoxy_speed(x, y);
+		printf("%d", Randomspeednum);
+
+		if (stage == 1) //stage 숫자가 클수록 더 빠르게 숫자가 나옴
+		{
+			Sleep(300);
+		}
+		else if (stage == 2)
+		{
+			Sleep(200);
+		}
+		else if (stage == 3)
+		{
+			Sleep(100);
+		}
+		else if (stage == 4)
+		{
+			Sleep(40);
+		}
+		else if (stage == 5)
+		{
+			Sleep(20);
+		}
+		else if (stage == 6)
+		{
+			Sleep(1);
+		}
+		else
+		{
+			system("cls");
+			printf("어? 잘못된 값을 입력하셨었네요. 다시 입력해주세요.\n");
+			Sleep(1000);
+			Speedgame();
+		}
+		
+		
+		system("cls");
+		printf("%d를 입력하면 종료됩니다. 숫자를 입력해 주세요 :", max * 10 - 1);
+		scanf_s("%d", &num);
+		if (num == Randomspeednum)
+		{
+			printf("정답입니다.\n");
+			pass++; //성공하면 pass++
+			printf("성공 : %d\n", pass);
+			printf("실패 : %d\n", fail);
+			Sleep(1500);
+			system("cls");
+
+		}
+		else if (num == max * 10 - 1) {
+			Sleep(1000);
+			system("cls");
+			printf("진짜로? (yes : 1 / no : 2)");
+			printf("입력해 주세요.");
+			scanf_s("%d", &onemoretime);
+
+			if (onemoretime == 2)
+			{
+				Speedgame();
+
+			}
+			else if (onemoretime == 1)
+			{
+				Sleep(1500);
+				system("cls");
+				Menu();
+			}
+		}
+
+		else {
+			printf("오답입니다.\n");
+			fail++; //틀리면 fail++
+			printf("정답은 %d입니다. \n", Randomspeednum);
+			printf("성공 : %d\n", pass);
+			printf("실패 : %d\n", fail);
+			Sleep(1500);
+
+			system("cls");
+		}
+	}
+
+}
+
+void Baseball()
+{
+	loading();
+
+	int answer[3];  //답을 저장할 배열 생성 
+	int playeranswer[3]; //사용자가 정답을 입력할 배열 생성  
+	int strike = 0, ball = 0, out = 0;  // strike 와 ball은 0으로 초기화한다.  
+	int i, j;
+	int cnt = 0; //사용자가 입력한 횟수를 입력한다.  
+	int onemoretime;
+
+	for (i = 0; i < 3; i++)
+	{
+		srand((unsigned)time(NULL)); //현재 시간을 이용해서 씨드 결정
+		answer[i] = rand() % 9 + 1; // 1~9 사이의 숫자를 랜덤으로 answer[] 입력 
+		for (j = 0; j < i; j++)
+		{
+			if (answer[i] == answer[j])
+			{ //answer[]배열의 중복된 숫자를 검사  
+				i--;
+				break;
+			}
+		}
+	}
+	system("cls");
+	printf("9번 이상 입력하면 실패입니다.");
+	while (1) { //무한 루프 돌리기 Strike가 3이거나 cnt가 9회이상이면은 빠져나감 
+
+		cnt++;
+
+		printf("\n숫자 3개를 입력하세요 : ");
+		scanf_s("%d %d %d", &playeranswer[0], &playeranswer[1], &playeranswer[2]);
+
+		if (playeranswer[0] == playeranswer[1] || (playeranswer[1] == playeranswer[2]) || (playeranswer[0] == playeranswer[2]))
+		{ //중복된 숫자를 검사 
+			printf("숫자가 중복되었습니다. 다시해주세요.\n");
+			cnt--; //중복된 숫자를 입력했기 때문에 cnt를 다시 원래의 값으로 되돌린다. 
+			continue;
+		}
+		if (playeranswer[0] == 0 || playeranswer[1] == 0 || playeranswer[2] == 0)
+		{ // 0을 입력받지 못하도록 검사  
+			printf("0이 입력되었습니다. 다시해주세요.\n");
+			cnt--; //중복된 숫자를 입력했기 때문에 cnt를 다시 원래의 값으로 되돌린다.
+			continue;
+		}
+		for (i = 0; i < 3; i++)
+		{
+			for (j = 0; j < 3; j++) {
+				if ((answer[i] == playeranswer[j]) && i == j)
+				{ //컴퓨터가 입력한 숫자와 사용자가 입력한 숫자와 자리가 같을 경우 strike 값을 증가  
+					strike++;
+				}
+				if ((answer[i] == playeranswer[j]) && i != j)
+				{  //같은 값이지만 자리가 다르면 ball값을 증가  
+					ball++;
+				}
+				if ((answer[i]) != playeranswer[j])
+				{ //모든 숫자가 동일하지 않을 경우 out의 값을 증가 
+					out++;
+				}
+			}
+		}
+		if (strike == 3)
+		{                     //값과 자리가 모두 동일하게 되면 정답  
+			printf("축하드립니다! 정답입니다..");
+			break;
+		}
+		if (out >= 9)
+		{                       //out이 9이상이면 모든 숫자가 맞지 않기 떄문에 아웃을 출력 후 out을 0으로 초기화
+			printf("아웃입니다.\n");
+			out = 0;
+		}
+		else
+		{
+			printf("%d 스트라이크 %d 볼입니다.\n", strike, ball); // strike와 ball을 출력
+			out = 0;
+		}
+
+
+		if (cnt == 9)
+		{                      //사용자 입력값이 9번 초과하여 프로그램 종료  
+			printf("사용 횟수를 초과되었습니다.");
+			break;
+		}
+		strike = 0;
+		ball = 0;
+	}
+
+	Sleep(1000);
+	system("cls");
+	printf("종료하시겠습니까? (yes : 1 / no : 2)\n");
+	printf("입력해 주세요.");
+	scanf_s("%d", &onemoretime);
+
+	if (onemoretime == 1)
+	{
+		Baseball();
+
+	}
+	else if (onemoretime == 2)
+	{
+		Sleep(1500);
+		system("cls");
+		Menu();
+	}
+}
+
+void Updown()
+{
+	loading();
+
+	int com, user;
+	int cnt = 0;
+	int onemoretime;
+	int level;
+	int random = 0;
+
+	system("cls");
+
+	printf("난이도를 선택해 주세요.(Easy : 1 / Normal : 2 / Hard : 3)");
+	scanf_s("%d", &level);
+
+	if (level == 1) {
+		random = 100;
+	}
+	else if (level == 2) {
+		random = 1000;
+	}
+	else if (level == 3) {
+		random = 10000;
+	}
+	else
+	{
+		printf("난이도를 잘못 입력했습니다.");
+		Updown();
+	}
+
+	srand((unsigned)time(NULL));
+	com = rand() % random + 1; //1에서 random사이의 난수 생성 
+
+	system("cls");
+
+	while (1)
+	{
+		printf("1 ~ %d사이의 수를 입력해 주세요\n", random);
+		scanf_s("%d", &user);
+
+
+		while (user > random || user < 1)
+		{
+			printf("\n잘못된 입력입니다.\n다시 입력 해주세요\n");
+			scanf_s("%d", &user);
+		} //조건에 맞지않는 입력일 경우 다시 입력하게 함 
+		if (user < random && user > 1)
+		{
+			if (user > com)
+			{
+				printf("down!!\n\n");
+				cnt++; //시도 횟수 카운트
+				if (cnt == 15)
+				{
+					printf("시도 횟수를 초과하셨습니다. 실패입니다. ");
+					Sleep(1000);
+					system("cls");
+					printf("한 번 더 하시겠습니까? (yes : 1 / no : 2)\n");
+					printf("입력해 주세요.");
+					scanf_s("%d", &onemoretime);
+
+					if (onemoretime == 1)
+					{
+						Updown();
+
+					}
+					else if (onemoretime == 2)
+					{
+						Sleep(1500);
+						system("cls");
+						Menu();
+					}
+				
+				}
+			}
+			else if (user < com)
+			{
+				printf("up!!\n\n");
+				cnt++; //시도 횟수 카운트
+				if (cnt == 15)
+				{
+					printf("시도 횟수를 초과하셨습니다. 실패입니다. ");
+					Sleep(1000);
+					system("cls");
+					printf("한 번 더 하시겠습니까? (yes : 1 / no : 2)\n");
+					printf("입력해 주세요.");
+					scanf_s("%d", &onemoretime);
+
+					if (onemoretime == 1)
+					{
+						Updown();
+
+					}
+					else if (onemoretime == 2)
+					{
+						Sleep(1500);
+						system("cls");
+						Menu();
+					}
+				}
+				
+				
+
+			}
+			else if (com == user)
+			{
+				cnt++; //시도 횟수 카운트
+				if (cnt == 15)
+				{
+					printf("시도 횟수를 초과하셨습니다. 실패입니다. ");
+					Sleep(1000);
+					system("cls");
+					printf("한 번 더 하시겠습니까? (yes : 1 / no : 2)\n");
+					printf("입력해 주세요.");
+					scanf_s("%d", &onemoretime);
+
+					if (onemoretime == 1)
+					{
+						Updown();
+
+					}
+					else if (onemoretime == 2)
+					{
+						Sleep(1500);
+						system("cls");
+						Menu();
+					}
+				}
+				else if (cnt < 15)
+				{
+					printf("%정답입니다!!\n%d번째에 맞추셨습니다.", cnt);
+					Sleep(1000);
+					system("cls");
+					printf("종료하시겠습니까? (yes : 1 / no : 2)\n");
+					printf("입력해 주세요.");
+					scanf_s("%d", &onemoretime);
+
+					if (onemoretime == 1)
+					{
+						Updown();
+
+					}
+					else if (onemoretime == 2)
+					{
+						Sleep(1500);
+						system("cls");
+						Menu();
+					}
+				}
+			}
+		}
+
+	}
+}
+
+void Snakegame()
+{
+	loading();
+
+	system("cls");
+	start();
+
+	while (1) {
+		if (_kbhit()) 
+			do 
+			{
+				key = _getch(); 
+			} while (key == 224); //키 입력받음
+		Sleep(speed);
+
+		switch (key) { //입력받은 키를 파악하고 실행  
+		case LEFT:
+		case RIGHT:
+		case UP:
+		case DOWN:
+			if ((dir == LEFT && key != RIGHT) || (dir == RIGHT && key != LEFT) || (dir == UP && key != DOWN) || (dir == DOWN && key != UP))//180회전이동을 방지하기 위해 필요. 
+			{
+				dir = key;
+			}
+			key = 0; // 키값을 저장하는 함수를 reset 
+			break;
+		case PAUSE: // P키를 누르면 일시정지 
+			pause();
+			break;
+		case 115: //S키를 누르면 개발자용 status를 활성화 시킴  
+			if (status_on == 0)
+			{
+				status_on = 1;
+
+			}
+			else
+			{
+				status_on = 0;
+			}
+			key = 0;
+			break;
+		case ESC: //ESC키를 누르면 프로그램 종료 
+			pause();
+			Sleep(1000);
+			system("cls");
+			printf("게임을 종료하겠습니다.\n");
+			Sleep(1000);
+			system("cls");
+			Menu();
+		}
+		move(dir);
+
+		if (status_on == 1)
+		{
+			status();
+		}// status표시 
+	}
+}
+
+int Menu()
+{
+	int Gamenumber;
+
+	
+	CursorView(0);
+
+	printf("┏ =======미 니 게 임=======┓\n");
+	printf("∥                         ∥\n");
+	printf("∥                         ∥\n");
+	printf("∥ 1 : 산술 게임           ∥\n");
+	printf("∥                         ∥\n");
+	printf("∥ 2 : 복권 게임           ∥\n");
+	printf("∥                         ∥\n");
+	printf("∥ 3 : 스피드 게임         ∥\n");
+	printf("∥                         ∥\n");
+	printf("∥ 4 : 야구 게임           ∥\n");
+	printf("∥                         ∥\n");
+	printf("∥ 5 : Up&Down 게임        ∥\n");
+	printf("∥                         ∥\n");
+	printf("∥ 6 : Snake 게임          ∥\n");
+	printf("∥                         ∥\n");
+	printf("∥ 7 : 종료                ∥\n");
+	printf("∥                         ∥\n");
+	printf("∥                         ∥\n");
+	printf("┖ =========================┚\n");
+
+	scanf_s("%d", &Gamenumber);
+
+	if (Gamenumber == 1)
+	{
+		numarithmetic();
+	}
+	else if (Gamenumber == 2)
+	{
+		Lottery();
+	}
+	else if (Gamenumber == 3)
+	{
+		Speedgame();
+	}
+	else if (Gamenumber == 4)
+	{
+		Baseball();
+	}
+	else if (Gamenumber == 5)
+	{
+		Updown();
+	}
+	else if (Gamenumber == 6)
+	{
+		Snakegame();
+	}
+	else if (Gamenumber == 7)
+	{
+		system("cls");
+		printf("게임을 종료합니다.");
+		return 0;
+	}
+	else
+	{
+		printf("잘못된 값을 입력받았습니다.");
+		Sleep(1000);
+		system("cls");
+		Menu();
+	}
+
+}
