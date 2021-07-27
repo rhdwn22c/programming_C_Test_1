@@ -1,0 +1,22 @@
+void reset() { //게임 초기화
+	int i;
+	system("cls"); //화면을 지움 
+	map(); //맵 테두리를 그림 
+	while (_kbhit())
+	{
+		_getch();
+	}//버퍼에 있는 키값을 버림 
+
+	dir = LEFT; // 방향 초기화  
+	speed = 100; // 속도 초기화 
+	length = 5; //뱀 길이 초기화 
+	score = 0; //점수 초기화 
+	for (i = 0;i < length;i++) 
+	{ //뱀 몸통값 입력 
+		x[i] = MAP_WIDTH / 2 + i;
+		y[i] = MAP_HEIGHT / 2;
+		gotoxy(MAP_X + x[i], MAP_Y + y[i], "■");
+	}
+	gotoxy(MAP_X + x[0], MAP_Y + y[0], "□"); //뱀 머리 그림 
+	apple(); // food 생성  
+}
