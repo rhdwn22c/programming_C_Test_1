@@ -1,0 +1,23 @@
+
+#include <stdio.h>
+#include <math.h>
+
+int main()
+{
+    double a[3], tmp;
+
+    int i, j;
+    for(i=0;i<3;i++){
+        scanf("%lf", &a[i]);
+    }
+    for(i=0;i<2;i++){
+        for(j=1;j<3;j++){
+            if(a[i] > a[j]){
+                tmp = a[i];
+                a[i] = a[j];
+                a[j] = tmp;
+            }
+        }
+    }
+    printf("%.0lf %.0lf %.0lf", ceil(a[2]), floor(a[0]), floor(a[1]+0.5));
+}
